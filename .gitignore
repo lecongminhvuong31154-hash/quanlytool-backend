@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+config.json
+license_manager.db
+*.db

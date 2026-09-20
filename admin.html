@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tool Manager</title>
+<style>
+:root{--text:#111b38;--muted:#73809e;--line:#e6ebf4;--blue:#377dff;--green:#18b978;--red:#e74e67}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 28% 12%,rgba(90,167,255,.13),transparent 23%),radial-gradient(circle at 78% 20%,rgba(92,230,189,.09),transparent 22%),#f8fbff}
+.shell{min-height:100vh;display:grid;grid-template-columns:250px 1fr}
+aside{background:rgba(255,255,255,.94);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column}
+.brand{font-weight:800;font-size:22px;padding:8px 10px 28px}.brand b{color:var(--blue)}
+nav{display:flex;flex-direction:column;gap:8px}
+nav button{border:0;background:transparent;padding:15px;border-radius:12px;text-align:left;font-size:15px;color:#3d4d70;cursor:pointer}
+nav button.active{background:#eaf3ff;color:var(--blue);font-weight:700}
+.version{margin-top:auto;color:#9aa5bb;font-size:12px;padding:10px}
+main{min-width:0}
+header{height:86px;background:rgba(255,255,255,.75);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px}
+header h1{margin:0;font-size:25px}header p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.content{padding:28px}.page{display:none}.page.active{display:block}
+.card{border:1px solid rgba(120,140,180,.14);border-radius:20px;background:rgba(255,255,255,.84);box-shadow:0 18px 40px rgba(65,83,125,.07)}
+.tool-card{max-width:520px;min-height:230px;padding:28px;background:linear-gradient(135deg,#eaf4ff,#edf9f5);cursor:pointer}
+.icon{width:62px;height:62px;border-radius:18px;background:#fff;display:grid;place-items:center;font-size:30px}
+.tool-card h2{font-size:24px;margin:18px 0 8px}.tool-card p{color:var(--muted);line-height:1.6}
+.pills{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+.pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.7);font-size:13px}
+.good{color:#11865a}.bad{color:#cc4056}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.section{padding:22px}.section h2{margin:0 0 5px;font-size:19px}.section>p{margin:0 0 20px;color:var(--muted);font-size:13px}
+.setting{padding:17px;border:1px solid var(--line);border-radius:14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:18px}
+.setting strong{font-size:14px}.setting small{display:block;color:var(--muted);margin-top:5px}
+input,select{height:42px;border:1px solid #dce4f0;border-radius:10px;padding:0 12px;background:#fff;outline:none}
+input[type=checkbox]{width:22px;height:22px}
+.primary,.secondary,.danger{border:0;border-radius:10px;min-height:40px;padding:0 15px;cursor:pointer;font-weight:700}
+.primary{background:var(--blue);color:#fff}.secondary{background:#edf4ff;color:#3866ad}.danger{background:#fff0f3;color:#d94860}
+.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 12px;border-bottom:1px solid #edf0f5;font-size:13px;vertical-align:top}th{color:#7a87a4;font-weight:600}
+.code{font-family:Consolas,monospace}
+.modal{position:fixed;inset:0;background:rgba(16,25,45,.34);display:none;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}
+.modal-box{width:min(520px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.18)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-group{margin:12px 0}.form-group label{display:block;font-size:13px;margin-bottom:6px}.form-group input,.form-group select{width:100%}
+.new-key{background:#f3f7ff;border:1px dashed #b8cae8;border-radius:12px;padding:15px;margin:15px 0;font-family:Consolas,monospace;font-weight:700;word-break:break-all}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+.device{display:flex;justify-content:space-between;gap:10px;padding:8px;background:#f8faff;border-radius:9px;margin-top:6px}
+@media(max-width:900px){.shell{grid-template-columns:88px 1fr}.brand{font-size:0}.brand:after{content:"TM";font-size:18px;color:var(--blue)}nav button{font-size:12px;padding:12px 6px;text-align:center}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside>
+  <div class="brand">Tool <b>Manager</b></div>
+  <nav>
+    <button class="active" data-page="overview">Tổng quan</button>
+    <button data-page="tool">Quản lý tool</button>
+    <button data-page="accounts">Quản lý ID / KEY</button>
+  </nav>
+  <div class="version">Move To Blue • v1</div>
+</aside>
+
+<main>
+<header>
+  <div><h1 id="title">Tổng quan</h1><p id="subtitle">Thông tin tool hiện có trong hệ thống</p></div>
+  <div id="clock"></div>
+</header>
+
+<div class="content">
+<section class="page active" id="overview">
+  <div class="tool-card card" onclick="showPage('tool')">
+    <div class="icon">🎯</div>
+    <h2>Move To Blue</h2>
+    <p>Tool duy nhất hiện có. Bấm vào thẻ để chuyển tới mục quản lý tool.</p>
+    <div class="pills">
+      <span class="pill good" id="overviewStatus">● Đang hoạt động</span>
+      <span class="pill" id="overviewAccounts">0 ID đang quản lý</span>
+      <span class="pill" id="overviewDevices">0 thiết bị</span>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="tool">
+  <div class="grid2">
+    <div class="card section">
+      <h2>Trạng thái Move To Blue</h2>
+      <p>Thiết lập chung áp dụng cho toàn bộ tài khoản.</p>
+      <div class="setting"><div><strong>Cho phép hoạt động</strong><small>Tắt để chặn toàn bộ tool.</small></div><input id="toolActive" type="checkbox"></div>
+      <div class="setting"><div><strong>Khóa tool</strong><small>Khi khóa, mọi ID đều không đăng nhập được.</small></div><input id="toolLocked" type="checkbox"></div>
+      <div class="setting"><div><strong>Số thiết bị mặc định</strong><small>Dùng khi tạo ID mới.</small></div>
+        <select id="defaultDevices"><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option></select>
+      </div>
+      <div style="margin-top:16px"><button class="primary" onclick="saveToolSettings()">Lưu thiết lập</button></div>
+    </div>
+
+    <div class="card section">
+      <h2>Luồng đăng nhập</h2>
+      <p>Phần login hoàn toàn tách khỏi giao diện tool gốc.</p>
+      <div class="setting"><div><strong>1. Mở launcher</strong><small>Khách chỉ thấy cửa sổ ID + KEY.</small></div></div>
+      <div class="setting"><div><strong>2. Server kiểm tra</strong><small>ID, KEY, hạn sử dụng, khóa, thiết bị.</small></div></div>
+      <div class="setting"><div><strong>3. Hợp lệ mới mở tool</strong><small>Sau đó mới gọi GUI nguyên bản.</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="accounts">
+  <div class="card section">
+    <div class="toolbar">
+      <div>
+        <h2>Quản lý ID / KEY</h2>
+        <p style="margin:5px 0 0;color:var(--muted);font-size:13px">Bạn nhập ID thủ công; KEY nên để hệ thống tự sinh.</p>
+      </div>
+      <button class="primary" onclick="showCreate()">+ Tạo ID mới</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>KEY</th><th>Hết hạn</th><th>Thiết bị</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+      <tbody id="accountsBody"></tbody>
+    </table>
+  </div>
+</section>
+</div>
+</main>
+</div>
+
+<div class="modal" id="createModal">
+  <div class="modal-box">
+    <h3>Tạo ID / KEY mới</h3>
+    <div class="form-group"><label>ID đăng nhập</label><input id="newUserId" placeholder="VD: KHACH001"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Thời hạn</label><select id="newMonths"><option value="1">1 tháng</option><option value="3">3 tháng</option><option value="6">6 tháng</option><option value="12">12 tháng</option></select></div>
+      <div class="form-group"><label>Số thiết bị</label><select id="newMaxDevices"><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option></select></div>
+    </div>
+    <p class="note">KEY được sinh ngẫu nhiên. Server chỉ lưu hash của KEY.</p>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button class="secondary" onclick="hideCreate()">Hủy</button>
+      <button class="primary" onclick="createAccount()">Tạo ID + KEY</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="keyModal">
+  <div class="modal-box">
+    <h3>KEY vừa tạo</h3>
+    <p>Hãy sao chép KEY này. KEY đầy đủ chỉ hiện ở thời điểm tạo/reset.</p>
+    <div class="new-key" id="newKeyValue"></div>
+    <button class="primary" onclick="copyKey()">Sao chép KEY</button>
+    <button class="secondary" onclick="keyModal.classList.remove('show')">Đóng</button>
+  </div>
+</div>
+
+<script>
+const pageInfo={
+  overview:["Tổng quan","Thông tin tool hiện có trong hệ thống"],
+  tool:["Quản lý tool","Trạng thái và thiết lập chung của Move To Blue"],
+  accounts:["Quản lý ID / KEY","Tạo tài khoản, gia hạn và quản lý thiết bị"]
+};
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+function showPage(name){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===name));
+  title.textContent=pageInfo[name][0]; subtitle.textContent=pageInfo[name][1];
+  if(name==="tool")loadTool();
+  if(name==="accounts")loadAccounts();
+}
+async function api(path,opts={}){
+  const r=await fetch(path,{headers:{"Content-Type":"application/json"},...opts});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.message||"Có lỗi xảy ra");
+  return j;
+}
+async function loadTool(){
+  const d=await api("/api/admin/tool");
+  toolActive.checked=!!d.active; toolLocked.checked=!!d.locked; defaultDevices.value=String(d.default_max_devices);
+  overviewStatus.textContent=d.locked?"● Đã khóa":(d.active?"● Đang hoạt động":"● Không hoạt động");
+  overviewStatus.className="pill "+(d.locked||!d.active?"bad":"good");
+}
+async function saveToolSettings(){
+  await api("/api/admin/tool",{method:"POST",body:JSON.stringify({active:toolActive.checked,locked:toolLocked.checked,default_max_devices:Number(defaultDevices.value)})});
+  alert("Đã lưu.");loadTool();
+}
+function showCreate(){createModal.classList.add("show")}
+function hideCreate(){createModal.classList.remove("show")}
+async function createAccount(){
+  const user_id=newUserId.value.trim();if(!user_id){alert("Hãy nhập ID.");return}
+  try{
+    const d=await api("/api/admin/accounts",{method:"POST",body:JSON.stringify({user_id,months:Number(newMonths.value),max_devices:Number(newMaxDevices.value)})});
+    hideCreate();newUserId.value="";newKeyValue.textContent=d.key;keyModal.classList.add("show");loadAccounts();loadStats();
+  }catch(e){alert(e.message)}
+}
+function copyKey(){navigator.clipboard.writeText(newKeyValue.textContent);alert("Đã sao chép KEY.")}
+async function loadAccounts(){
+  const d=await api("/api/admin/accounts");accountsBody.innerHTML="";
+  d.accounts.forEach(a=>{
+    const tr=document.createElement("tr");
+    const state=a.locked?"Đã khóa":(a.expired?"Hết hạn":"Hoạt động");
+    tr.innerHTML=`<td><b>${esc(a.user_id)}</b></td><td class="code">${esc(a.key_preview)}</td><td>${esc(a.expires_at.slice(0,10))}</td>
+    <td>${a.devices.length}/${a.max_devices}${a.devices.map(x=>`<div class="device"><span>${esc(x.device_name||"Thiết bị")}<br><small class="code">${esc(x.device_id.slice(0,12))}...</small></span><button class="danger" data-a="${a.id}" data-d="${escAttr(x.device_id)}">Xóa</button></div>`).join("")}</td>
+    <td class="${a.locked||a.expired?"bad":"good"}">${state}</td>
+    <td><button class="secondary" onclick="extendAccount(${a.id},1)">+1 tháng</button> <button class="secondary" onclick="toggleLock(${a.id},${a.locked?0:1})">${a.locked?"Mở khóa":"Khóa"}</button> <button class="secondary" onclick="resetKey(${a.id})">Đổi KEY</button></td>`;
+    accountsBody.appendChild(tr);
+  });
+  document.querySelectorAll(".danger[data-d]").forEach(b=>b.onclick=()=>deleteDevice(Number(b.dataset.a),b.dataset.d));
+}
+async function extendAccount(id,months){await api(`/api/admin/accounts/${id}/extend`,{method:"POST",body:JSON.stringify({months})});loadAccounts();loadStats()}
+async function toggleLock(id,locked){await api(`/api/admin/accounts/${id}/lock`,{method:"POST",body:JSON.stringify({locked:!!locked})});loadAccounts()}
+async function deleteDevice(id,device_id){if(!confirm("Xóa thiết bị này?"))return;await api(`/api/admin/accounts/${id}/devices/delete`,{method:"POST",body:JSON.stringify({device_id})});loadAccounts();loadStats()}
+async function resetKey(id){if(!confirm("Tạo KEY mới? KEY cũ sẽ mất hiệu lực ngay."))return;const d=await api(`/api/admin/accounts/${id}/reset-key`,{method:"POST",body:"{}"});newKeyValue.textContent=d.key;keyModal.classList.add("show");loadAccounts()}
+async function loadStats(){const d=await api("/api/admin/stats");overviewAccounts.textContent=`${d.accounts} ID đang quản lý`;overviewDevices.textContent=`${d.devices} thiết bị`}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function escAttr(s){return String(s??"").replace(/['"\\]/g,"")}
+setInterval(()=>clock.textContent=new Date().toLocaleString("vi-VN"),1000);
+loadTool();loadStats();
+</script>
+</body>
+</html>
