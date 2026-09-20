@@ -54,3 +54,8 @@ Trong `client/config.json`:
   "public_server_url": "https://<domain>.up.railway.app"
 }
 ```
+
+
+## Bản v2
+- Thêm `POST /api/admin/accounts/<id>/delete`.
+- Xóa vĩnh viễn ID, KEY hash và toàn bộ thiết bị liên quan.

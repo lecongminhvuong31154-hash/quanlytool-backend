@@ -283,7 +283,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.create_account()
 
         match = re.fullmatch(
-            r"/api/admin/accounts/(\d+)/(extend|lock|reset-key|devices/delete)",
+            r"/api/admin/accounts/(\d+)/(extend|lock|reset-key|devices/delete|delete)",
             path
         )
         if not match:
@@ -300,6 +300,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.reset_key(account_id)
         if action == "devices/delete":
             return self.delete_device(account_id)
+        if action == "delete":
+            return self.delete_account(account_id)
 
     def save_tool(self):
         data = read_json(self)
@@ -452,6 +454,43 @@ class Handler(BaseHTTPRequestHandler):
             )
 
         return send_json(self, 200, {"ok": True})
+
+    def delete_account(self, account_id):
+        """
+        Xóa vĩnh viễn một ID/license.
+        Bảng devices có ON DELETE CASCADE nên toàn bộ thiết bị của ID
+        cũng bị xóa cùng lúc.
+        """
+        with db() as conn:
+            row = conn.execute(
+                "SELECT user_id FROM accounts WHERE id=?",
+                (account_id,)
+            ).fetchone()
+
+            if not row:
+                return send_json(self, 404, {
+                    "ok": False,
+                    "message": "Không tìm thấy ID."
+                })
+
+            user_id = row["user_id"]
+
+            cur = conn.execute(
+                "DELETE FROM accounts WHERE id=?",
+                (account_id,)
+            )
+
+            if cur.rowcount == 0:
+                return send_json(self, 404, {
+                    "ok": False,
+                    "message": "Không tìm thấy ID."
+                })
+
+        return send_json(self, 200, {
+            "ok": True,
+            "deleted_user_id": user_id,
+            "message": "Đã xóa vĩnh viễn ID và toàn bộ thiết bị liên quan."
+        })
 
     def license_login(self):
         try:

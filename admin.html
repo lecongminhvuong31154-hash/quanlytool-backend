@@ -33,7 +33,7 @@ header h1{margin:0;font-size:25px}header p{margin:5px 0 0;color:var(--muted);fon
 input,select{height:42px;border:1px solid #dce4f0;border-radius:10px;padding:0 12px;background:#fff;outline:none}
 input[type=checkbox]{width:22px;height:22px}
 .primary,.secondary,.danger{border:0;border-radius:10px;min-height:40px;padding:0 15px;cursor:pointer;font-weight:700}
-.primary{background:var(--blue);color:#fff}.secondary{background:#edf4ff;color:#3866ad}.danger{background:#fff0f3;color:#d94860}
+.primary{background:var(--blue);color:#fff}.secondary{background:#edf4ff;color:#3866ad}.danger{background:#fff0f3;color:#d94860}.delete-account{border:0;border-radius:8px;min-height:40px;padding:0 15px;cursor:pointer;font-weight:700;background:#e5485d;color:#fff;margin-left:4px}
 .toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 12px;border-bottom:1px solid #edf0f5;font-size:13px;vertical-align:top}th{color:#7a87a4;font-weight:600}
 .code{font-family:Consolas,monospace}
@@ -194,7 +194,7 @@ async function loadAccounts(){
     tr.innerHTML=`<td><b>${esc(a.user_id)}</b></td><td class="code">${esc(a.key_preview)}</td><td>${esc(a.expires_at.slice(0,10))}</td>
     <td>${a.devices.length}/${a.max_devices}${a.devices.map(x=>`<div class="device"><span>${esc(x.device_name||"Thiết bị")}<br><small class="code">${esc(x.device_id.slice(0,12))}...</small></span><button class="danger" data-a="${a.id}" data-d="${escAttr(x.device_id)}">Xóa</button></div>`).join("")}</td>
     <td class="${a.locked||a.expired?"bad":"good"}">${state}</td>
-    <td><button class="secondary" onclick="extendAccount(${a.id},1)">+1 tháng</button> <button class="secondary" onclick="toggleLock(${a.id},${a.locked?0:1})">${a.locked?"Mở khóa":"Khóa"}</button> <button class="secondary" onclick="resetKey(${a.id})">Đổi KEY</button></td>`;
+    <td><button class="secondary" onclick="extendAccount(${a.id},1)">+1 tháng</button> <button class="secondary" onclick="toggleLock(${a.id},${a.locked?0:1})">${a.locked?"Mở khóa":"Khóa"}</button> <button class="secondary" onclick="resetKey(${a.id})">Đổi KEY</button> <button class="delete-account" onclick="deleteAccount(${a.id},\'${escAttr(a.user_id)}\')">Xóa</button></td>`;
     accountsBody.appendChild(tr);
   });
   document.querySelectorAll(".danger[data-d]").forEach(b=>b.onclick=()=>deleteDevice(Number(b.dataset.a),b.dataset.d));
@@ -203,6 +203,7 @@ async function extendAccount(id,months){await api(`/api/admin/accounts/${id}/ext
 async function toggleLock(id,locked){await api(`/api/admin/accounts/${id}/lock`,{method:"POST",body:JSON.stringify({locked:!!locked})});loadAccounts()}
 async function deleteDevice(id,device_id){if(!confirm("Xóa thiết bị này?"))return;await api(`/api/admin/accounts/${id}/devices/delete`,{method:"POST",body:JSON.stringify({device_id})});loadAccounts();loadStats()}
 async function resetKey(id){if(!confirm("Tạo KEY mới? KEY cũ sẽ mất hiệu lực ngay."))return;const d=await api(`/api/admin/accounts/${id}/reset-key`,{method:"POST",body:"{}"});newKeyValue.textContent=d.key;keyModal.classList.add("show");loadAccounts()}
+async function deleteAccount(id,userId){if(!confirm(`Xóa vĩnh viễn ID "${userId}"?\n\nKEY và toàn bộ thiết bị của ID này cũng sẽ bị xóa.\nKhông thể hoàn tác.`))return;await api(`/api/admin/accounts/${id}/delete`,{method:"POST",body:"{}"});loadAccounts();loadStats();}
 async function loadStats(){const d=await api("/api/admin/stats");overviewAccounts.textContent=`${d.accounts} ID đang quản lý`;overviewDevices.textContent=`${d.devices} thiết bị`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function escAttr(s){return String(s??"").replace(/['"\\]/g,"")}
